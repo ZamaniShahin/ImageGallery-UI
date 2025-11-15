@@ -1,0 +1,1 @@
+export interface Paged<T> { items: T[]; page: number; size: number; total: number }
