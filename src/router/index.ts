@@ -1,29 +1,23 @@
+// router/index.ts
 import { createRouter, createWebHistory } from "vue-router";
 import { keycloak } from "../plugins/keycloak";
 
 const PublicLayout = () => import("../layouts/PublicLayout.vue");
 const AdminLayout = () => import("../layouts/AdminLayout.vue");
 
-async function requireAuth(to, from, next) {
-  // make sure keycloak is initialized
+function requireAuth(to, from, next) {
+  // not logged in → redirect to login
   if (!keycloak.authenticated) {
-    await keycloak.init({
-      onLoad: "check-sso",
-      silentCheckSsoRedirectUri: window.location.origin + "/silent-check-sso.html"
+    return keycloak.login({
+      redirectUri: window.location.origin + to.fullPath,
     });
   }
 
-  // if not logged in → login
-  if (!keycloak.authenticated) {
-    return keycloak.login({ redirectUri: window.location.origin + to.fullPath });
-  }
-
   // CHECK ADMIN ROLE
-  const isAdmin =
-    keycloak.hasResourceRole("Admin", "imagegallery-frontend");
+  const isAdmin = keycloak.hasResourceRole("Admin", "imagegallery-frontend");
 
   if (to.path.startsWith("/admin") && !isAdmin) {
-    return next("/"); // deny and redirect home
+    return next("/"); // send them home if not admin
   }
 
   next();
@@ -39,7 +33,6 @@ const routes = [
       { path: "categories", name: "categories", component: () => import("../pages/Categories.vue") },
       { path: "services", name: "services", component: () => import("../pages/Services.vue") },
       { path: "about", name: "about", component: () => import("../pages/About.vue") },
-      { path: "login", name: "login", component: () => import("../pages/Login.vue") },
     ],
   },
 
@@ -59,13 +52,11 @@ const routes = [
   {
     path: "/image/:id",
     name: "image.details",
-    component: () => import("../pages/ImageDetails.vue")
+    component: () => import("../pages/ImageDetails.vue"),
   }
 ];
 
-const router = createRouter({
+export default createRouter({
   history: createWebHistory(),
   routes,
 });
-
-export default router;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { keycloak, isAuthenticated, username, hasAdminRole } from "../plugins/keycloak";
+import { isAuthenticated, hasAdminRole, username, keycloak } from "../plugins/keycloak";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
