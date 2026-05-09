@@ -9,7 +9,7 @@ export const CommentsApi = {
 
   async getByImage(imageId: string) {
     const res = await http.get(`/categories/comments/${imageId}`);
-    return res.data?.valueOrDefault ?? [];
+    return res.data ?? [];
   },
 
   async delete(commentId: string) {

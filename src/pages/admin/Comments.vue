@@ -87,6 +87,8 @@ async function loadCategories() {
 }
 
 async function loadImages() {
+  selectedImage.value = "";
+  comments.value = [];
   images.value = await ImagesApi.getByCategory(selectedCategory.value);
 }
 

@@ -3,7 +3,7 @@ import http from '../http';
 export const CategoriesApi = {
   async getAll() {
     const r = await http.get('/categories');
-    return r.data.valueOrDefault ?? [];
+    return r.data ?? [];
   },
 
   async add(data: any) {

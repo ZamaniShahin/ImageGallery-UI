@@ -15,7 +15,7 @@
         v-for="img in images"
         :key="img.id"
       >
-        <v-card class="hoverable" @click="router.push({ name: "image.details", params: { id: img.id } })">
+        <v-card class="hoverable" @click="router.push({ name: 'image.details', params: { id: img.id } })">
           <v-img
             :src="img.preview"
             height="260"
@@ -54,18 +54,15 @@ onMounted(async () => {
 
   const res = await ImagesApi.getByCategory(categoryId);
 
-  images.value = res.map(x => ({
+  images.value = res.map((x: { id: string; description?: string; content: string }) => ({
     id: x.id,
     description: x.description,
-    // backend returns content as base64 string
-    preview: "data:image/jpeg;base64," + x.content
+    preview: "data:image/jpeg;base64," + x.content,
   }));
 
-  categoryName.value = route.query.categoryName ?? "";
+  categoryName.value = Array.isArray(route.query.categoryName)
+    ? (route.query.categoryName[0] ?? "")
+    : (route.query.categoryName ?? "");
   loading.value = false;
 });
-
-function openImage(id: string) {
-  router.push({ name: "image.details", query: { imageId: id } });
-}
 </script>

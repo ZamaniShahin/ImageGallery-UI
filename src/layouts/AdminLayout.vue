@@ -11,6 +11,7 @@
         <v-list-item to="/admin/categories" title="Categories" prepend-icon="mdi-shape" />
         <v-list-item to="/admin/services" title="Services" prepend-icon="mdi-hammer-wrench" />
         <v-list-item to="/admin/comments" title="Comments" prepend-icon="mdi-comment" />
+        <v-list-item to="/admin/about" title="About" prepend-icon="mdi-information" />
       </v-list>
     </v-navigation-drawer>
 

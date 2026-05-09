@@ -3,7 +3,7 @@ import http from '../http';
 export const ServicesApi = {
   // ✅ Get all services
   getAll() {
-    return http.get('/services').then((r) => r.data?.valueOrDefault ?? []);
+    return http.get('/services').then((r) => r.data ?? []);
   },
 
   // ✅ Add service (base64 logo)
@@ -11,7 +11,7 @@ export const ServicesApi = {
     let base64Logo = '';
     if (data.file) {
       base64Logo = await toBase64(data.file);
-      base64Logo = base64Logo.split(',')[1]; // remove data:image/... prefix
+      base64Logo = base64Logo.split(',')[1] ?? ''; // remove data:image/... prefix
     }
 
     const payload = {
@@ -29,7 +29,7 @@ export const ServicesApi = {
     let base64Logo = '';
     if (data.file) {
       base64Logo = await toBase64(data.file);
-      base64Logo = base64Logo.split(',')[1];
+      base64Logo = base64Logo.split(',')[1] ?? '';
     }
 
     const payload = {

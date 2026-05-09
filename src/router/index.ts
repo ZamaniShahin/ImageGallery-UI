@@ -1,11 +1,11 @@
 // router/index.ts
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory, type RouteLocationNormalized, type NavigationGuardNext } from "vue-router";
 import { keycloak } from "../plugins/keycloak";
 
 const PublicLayout = () => import("../layouts/PublicLayout.vue");
 const AdminLayout = () => import("../layouts/AdminLayout.vue");
 
-function requireAuth(to, from, next) {
+function requireAuth(to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) {
   // not logged in → redirect to login
   if (!keycloak.authenticated) {
     return keycloak.login({
@@ -46,6 +46,7 @@ const routes = [
       { path: "categories", name: "admin.categories", component: () => import("../pages/admin/Categories.vue") },
       { path: "services", name: "admin.services", component: () => import("../pages/admin/Services.vue") },
       { path: "comments", name: "admin.comments", component: () => import("../pages/admin/Comments.vue") },
+      { path: "about", name: "admin.about", component: () => import("../pages/admin/About.vue") },
     ],
   },
 

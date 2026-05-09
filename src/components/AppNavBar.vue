@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { isAuthenticated, hasAdminRole, username, keycloak } from "../plugins/keycloak";
-import { useRouter } from "vue-router";
-
-const router = useRouter();
 
 function login() {
   keycloak.login({ redirectUri: window.location.origin });

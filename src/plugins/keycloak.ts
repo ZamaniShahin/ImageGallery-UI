@@ -1,30 +1,59 @@
 import Keycloak from "keycloak-js";
 import { computed, ref } from "vue";
 
+const TOKEN_KEY = "kc_token";
+const REFRESH_TOKEN_KEY = "kc_refresh_token";
+
 export const keycloak = new Keycloak({
   url: import.meta.env.VITE_KEYCLOAK_URL,
   realm: import.meta.env.VITE_KEYCLOAK_REALM,
-  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID
+  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
 });
 
 export const isAuthenticated = ref(false);
 
 export const hasAdminRole = computed(() => {
-  const roles =
-    keycloak.tokenParsed?.resource_access?.["imagegallery-frontend"]?.roles ??
-    [];
+  if (!isAuthenticated.value) return false;
+  const roles: string[] =
+    (keycloak.tokenParsed as any)?.resource_access?.["imagegallery-frontend"]?.roles ?? [];
   return roles.includes("Admin");
 });
+
+function saveTokens() {
+  sessionStorage.setItem(TOKEN_KEY, keycloak.token ?? "");
+  sessionStorage.setItem(REFRESH_TOKEN_KEY, keycloak.refreshToken ?? "");
+}
+
+function clearTokens() {
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
 export async function initializeKeycloak() {
+  keycloak.onAuthSuccess = () => {
+    isAuthenticated.value = true;
+    saveTokens();
+  };
+
+  keycloak.onAuthRefreshSuccess = () => {
+    saveTokens();
+  };
+
+  keycloak.onAuthLogout = () => {
+    clearTokens();
+    isAuthenticated.value = false;
+  };
+
   const authenticated = await keycloak.init({
     onLoad: "check-sso",
-    silentCheckSsoRedirectUri: window.location.origin + "/silent-check-sso.html",
+    token: sessionStorage.getItem(TOKEN_KEY) ?? undefined,
+    refreshToken: sessionStorage.getItem(REFRESH_TOKEN_KEY) ?? undefined,
+    checkLoginIframe: false,
   });
 
   isAuthenticated.value = authenticated;
-
-  console.log("Keycloak loaded:", authenticated);
 }
+
 export const username = computed(() =>
   keycloak.tokenParsed?.preferred_username ?? ""
 );

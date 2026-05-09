@@ -36,19 +36,17 @@
             />
           </v-col>
         </v-row>
-        <v-btn color="primary" class="mt-2" :loading="uploading" type="submit">
-          Upload
-        </v-btn>
+        <v-btn color="primary" class="mt-2" :loading="uploading" type="submit">Upload</v-btn>
       </v-form>
     </v-card>
 
     <!-- Images list -->
     <v-data-table
+      v-if="selectedCategory"
       :headers="headers"
       :items="images"
       :loading="loading"
       class="elevation-2"
-      v-if="selectedCategory"
     >
       <template #item.content="{ item }">
         <v-img
@@ -59,54 +57,71 @@
           class="rounded-lg"
         />
       </template>
+
+      <template #item.actions="{ item }">
+        <v-btn icon="mdi-pencil" variant="text" color="blue" @click="openEdit(item)" />
+        <v-btn icon="mdi-delete" variant="text" color="red" @click="deleteImage(item.id)" />
+      </template>
     </v-data-table>
+
+    <!-- Edit dialog -->
+    <v-dialog v-model="editDialog" max-width="480">
+      <v-card>
+        <v-card-title class="text-h6 pa-4">Edit Description</v-card-title>
+        <v-card-text>
+          <v-text-field v-model="editDescription" label="Description" autofocus />
+        </v-card-text>
+        <v-card-actions class="pa-4 pt-0">
+          <v-spacer />
+          <v-btn variant="text" @click="editDialog = false">Cancel</v-btn>
+          <v-btn color="primary" :loading="saving" @click="saveEdit">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { ImagesApi } from '@/api/modules/images.api';
-import { CategoriesApi } from '@/api/modules/categories.api';
-
-interface Category { id: string; title: string; }
-interface ImageItem { id: string; url?: string; description?: string; }
+import { ImagesApi } from '../../api/modules/images.api';
+import { CategoriesApi } from '../../api/modules/categories.api';
+import type { ImageItem } from '../../types/image';
+import type { Category } from '../../types/category';
 
 const categories = ref<Category[]>([]);
 const selectedCategory = ref<string | null>(null);
 const images = ref<ImageItem[]>([]);
 const loading = ref(false);
 const uploading = ref(false);
+const saving = ref(false);
 
-const form = ref<{ description: string; file: File | null }>({
-  description: '',
-  file: null,
-});
+const form = ref<{ description: string; file: File | null }>({ description: '', file: null });
+
+const editDialog = ref(false);
+const editId = ref('');
+const editDescription = ref('');
 
 const headers = [
-  { title: 'ID', key: 'id', width: 70 },
+  { title: 'ID', key: 'id', width: 80 },
   { title: 'Preview', key: 'content', sortable: false },
   { title: 'Description', key: 'description' },
+  { title: 'Actions', key: 'actions', sortable: false },
 ];
 
-// load categories on start
 const loadCategories = async () => {
-  const res = await CategoriesApi.getAll();
-  categories.value = res;
+  categories.value = await CategoriesApi.getAll();
 };
 
-// load images for selected category
 const loadImages = async () => {
   if (!selectedCategory.value) return;
   loading.value = true;
   try {
-    const res = await ImagesApi.list(selectedCategory.value);
-    images.value = res;
+    images.value = await ImagesApi.list(selectedCategory.value);
   } finally {
     loading.value = false;
   }
 };
 
-// upload a new image
 const uploadImage = async () => {
   if (!selectedCategory.value || !form.value.file) return;
   uploading.value = true;
@@ -118,6 +133,35 @@ const uploadImage = async () => {
     console.error('Upload failed:', err);
   } finally {
     uploading.value = false;
+  }
+};
+
+const openEdit = (item: ImageItem) => {
+  editId.value = item.id;
+  editDescription.value = item.description ?? '';
+  editDialog.value = true;
+};
+
+const saveEdit = async () => {
+  saving.value = true;
+  try {
+    await ImagesApi.update(editId.value, editDescription.value);
+    editDialog.value = false;
+    await loadImages();
+  } catch (err) {
+    console.error('Update failed:', err);
+  } finally {
+    saving.value = false;
+  }
+};
+
+const deleteImage = async (id: string) => {
+  if (!confirm('Delete this image?')) return;
+  try {
+    await ImagesApi.delete(id);
+    await loadImages();
+  } catch (err) {
+    console.error('Delete failed:', err);
   }
 };
 

@@ -4,33 +4,38 @@ export const ImagesApi = {
 
   async getById(id: string) {
     const r = await http.get(`/categories/${id}/image`);
-    return r.data.valueOrDefault ?? null;
+    return r.data ?? null;
   },
-  // Get all images for a specific category
+
   async list(categoryId: string) {
-    const r = await http
-      .get(`/categories/${categoryId}/images`);
-    return r.data?.valueOrDefault ?? [];
+    const r = await http.get(`/categories/${categoryId}/images`);
+    return r.data ?? [];
   },
+
   async getByCategory(categoryId: string) {
     const r = await http.get(`/categories/${categoryId}/images`);
-    return r.data.valueOrDefault ?? [];
+    return r.data ?? [];
   },
-  // Upload a new image to a specific category
+
   async create(categoryId: string, file: File, description: string) {
     const base64 = await toBase64(file);
     const payload = {
       id: categoryId,
-      content: base64.split(',')[1], // remove the data:image/... prefix
+      content: base64.split(',')[1],
       description,
     };
-    return http
-      .post(`/categories/${categoryId}/images`, payload)
-      .then((r) => r.data);
+    return http.post(`/categories/${categoryId}/images`, payload).then((r) => r.data);
+  },
+
+  async update(id: string, description: string) {
+    return http.put(`/categories/images/${id}`, { description }).then((r) => r.data);
+  },
+
+  async delete(id: string) {
+    return http.delete(`/categories/images/${id}`).then((r) => r.data);
   },
 };
 
-// helper to convert a File into a base64 string
 function toBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

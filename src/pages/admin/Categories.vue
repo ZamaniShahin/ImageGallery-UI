@@ -54,7 +54,7 @@
           icon="mdi-delete"
           variant="text"
           color="red"
-          @click="deleteCategory(item.id)"
+          @click="deleteCategory(item.id!)"
         />
       </template>
     </v-data-table>
@@ -99,8 +99,8 @@ const saveCategory = async () => {
   if (!form.value.title.trim()) return;
   saving.value = true;
   try {
-    if (form.value.id) {
-      await CategoriesApi.update(form.value.id, form.value);
+    if (form.value.id != null) {
+      await CategoriesApi.update(form.value.id as number, form.value);
     } else {
       await CategoriesApi.add(form.value);
     }

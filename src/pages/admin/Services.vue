@@ -78,7 +78,7 @@
           icon="mdi-delete"
           variant="text"
           color="red"
-          @click="deleteService(item.id)"
+          @click="deleteService(item.id!)"
         />
       </template>
     </v-data-table>
@@ -134,10 +134,16 @@ const saveService = async () => {
   if (!form.value.title.trim()) return;
   saving.value = true;
   try {
+    const payload = {
+      title: form.value.title,
+      description: form.value.description ?? '',
+      price: form.value.price,
+      file: form.value.file ?? null,
+    };
     if (form.value.id) {
-      await ServicesApi.update(form.value.id, form.value);
+      await ServicesApi.update(form.value.id, payload);
     } else {
-      await ServicesApi.add(form.value);
+      await ServicesApi.add(payload);
     }
     form.value = { title: '', description: '', price: 0, file: null };
     await loadServices();

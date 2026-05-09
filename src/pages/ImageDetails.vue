@@ -74,7 +74,7 @@ async function loadComments() {
 
 async function addComment() {
   const id = getImageId();
-  await CommentsApi.add(id, subject.value, body.value);
+  await CommentsApi.add(id, { subject: subject.value, body: body.value });
 
   subject.value = "";
   body.value = "";
