@@ -44,14 +44,16 @@ export async function initializeKeycloak() {
     isAuthenticated.value = false;
   };
 
-  const authenticated = await keycloak.init({
-    onLoad: "check-sso",
-    token: sessionStorage.getItem(TOKEN_KEY) ?? undefined,
-    refreshToken: sessionStorage.getItem(REFRESH_TOKEN_KEY) ?? undefined,
-    checkLoginIframe: false,
-  });
-
-  isAuthenticated.value = authenticated;
+  try {
+    await keycloak.init({
+      token: sessionStorage.getItem(TOKEN_KEY) ?? undefined,
+      refreshToken: sessionStorage.getItem(REFRESH_TOKEN_KEY) ?? undefined,
+      checkLoginIframe: false,
+    });
+    isAuthenticated.value = keycloak.authenticated ?? false;
+  } catch {
+    isAuthenticated.value = false;
+  }
 }
 
 export const username = computed(() =>
