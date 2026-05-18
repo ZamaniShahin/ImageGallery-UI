@@ -1,15 +1,14 @@
 <template>
   <v-container fluid>
-    <h2 class="text-h5 mb-4">Manage Categories</h2>
+    <h2 class="text-h5 mb-4">{{ t('admin.manageCategories') }}</h2>
 
-    <!-- Add/Edit Form -->
     <v-card class="pa-4 mb-6" elevation="2">
       <v-form @submit.prevent="saveCategory">
         <v-row>
           <v-col cols="12" md="4">
             <v-text-field
               v-model="form.title"
-              label="Category Title"
+              :label="t('categories.titleField')"
               prepend-inner-icon="mdi-shape"
               required
             />
@@ -17,92 +16,97 @@
           <v-col cols="12" md="6">
             <v-text-field
               v-model="form.description"
-              label="Description"
+              :label="t('categories.descriptionField')"
               prepend-inner-icon="mdi-text"
             />
           </v-col>
           <v-col cols="12" md="2" class="d-flex align-center">
-            <v-btn
-              color="primary"
-              :loading="saving"
-              type="submit"
-              block
-            >
-              {{ form.id ? 'Update' : 'Add' }}
+            <v-btn color="primary" :loading="saving" type="submit" block>
+              {{ form.id ? t('common.update') : t('common.add') }}
             </v-btn>
           </v-col>
         </v-row>
       </v-form>
     </v-card>
 
-    <!-- Category Table -->
     <v-data-table
       :headers="headers"
       :items="categories"
       :loading="loading"
+      :items-per-page="-1"
       class="elevation-2"
       density="comfortable"
+      hide-default-footer
     >
       <template #item.actions="{ item }">
-        <v-btn
-          icon="mdi-pencil"
-          variant="text"
-          color="blue"
-          @click="editCategory(item)"
-        />
-        <v-btn
-          icon="mdi-delete"
-          variant="text"
-          color="red"
-          @click="deleteCategory(item.id!)"
-        />
+        <v-btn icon="mdi-pencil" variant="text" color="blue" @click="editCategory(item)" />
+        <v-btn icon="mdi-delete" variant="text" color="red" @click="deleteCategory(item.id!)" />
       </template>
     </v-data-table>
+
+    <AppPagination
+      v-if="!loading && total > pageSize"
+      :page="page"
+      :page-size="pageSize"
+      :total="total"
+      @update:page="onPageChange"
+    />
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { CategoriesApi } from '../../api/modules/categories.api';
+import AppPagination from '../../components/Pagination.vue';
 
-interface Category {
-  id?: number;
+interface CategoryForm {
+  id?: string;
   title: string;
-  description?: string;
+  description: string;
 }
 
-const categories = ref<Category[]>([]);
+const { t } = useI18n();
+const categories = ref<CategoryForm[]>([]);
 const loading = ref(false);
 const saving = ref(false);
-const form = ref<Category>({ title: '', description: '' });
+const form = ref<CategoryForm>({ title: '', description: '' });
 
-const headers = [
-  { title: 'ID', key: 'id', width: 70 },
-  { title: 'Title', key: 'title' },
-  { title: 'Description', key: 'description' },
-  { title: 'Actions', key: 'actions', sortable: false },
-];
+const page = ref(1);
+const pageSize = ref(10);
+const total = ref(0);
 
-// Load categories
-const loadCategories = async () => {
+const headers = computed(() => [
+  { title: t('image.title'), key: 'title' },
+  { title: t('image.description'), key: 'description' },
+  { title: t('common.actions'), key: 'actions', sortable: false },
+]);
+
+async function loadCategories() {
   loading.value = true;
   try {
-    const res = await CategoriesApi.getAll();
-    categories.value = Array.isArray(res) ? res : res.items || [];
+    const r = await CategoriesApi.list({ pageNumber: page.value, pageSize: pageSize.value });
+    categories.value = r.items;
+    total.value = r.totalCount;
   } finally {
     loading.value = false;
   }
-};
+}
 
-// Save category
-const saveCategory = async () => {
+function onPageChange(p: number) {
+  page.value = p;
+  loadCategories();
+}
+
+async function saveCategory() {
   if (!form.value.title.trim()) return;
   saving.value = true;
   try {
-    if (form.value.id != null) {
-      await CategoriesApi.update(form.value.id as number, form.value);
+    const payload = { title: form.value.title, description: form.value.description ?? '' };
+    if (form.value.id) {
+      await CategoriesApi.update(form.value.id, payload);
     } else {
-      await CategoriesApi.add(form.value);
+      await CategoriesApi.add(payload);
     }
     form.value = { title: '', description: '' };
     await loadCategories();
@@ -111,23 +115,21 @@ const saveCategory = async () => {
   } finally {
     saving.value = false;
   }
-};
+}
 
-// Edit existing category
-const editCategory = (item: Category) => {
+function editCategory(item: CategoryForm) {
   form.value = { ...item };
-};
+}
 
-// Delete
-const deleteCategory = async (id: number) => {
-  if (!confirm('Delete this category?')) return;
+async function deleteCategory(id: string) {
+  if (!confirm(t('categories.confirmDelete'))) return;
   try {
     await CategoriesApi.remove(id);
     await loadCategories();
   } catch (e) {
     console.error('Delete failed:', e);
   }
-};
+}
 
 onMounted(loadCategories);
 </script>

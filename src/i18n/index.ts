@@ -4,7 +4,7 @@ import en from './en';
 
 export default createI18n({
   legacy: false,
-  locale: import.meta.env.VITE_LOCALE_DEFAULT || 'fa',
+  locale: 'fa',
   fallbackLocale: 'en',
   messages: { fa, en },
 });

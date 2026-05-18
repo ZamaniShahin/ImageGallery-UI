@@ -1,60 +1,42 @@
 import http from '../http';
+import type { Service } from '../../types/service';
+import type { Paged } from '../../types/common';
 
 export const ServicesApi = {
-  // ✅ Get all services
-  getAll() {
-    return http.get('/services').then((r) => r.data ?? []);
+  async list(p: { pageNumber?: number; pageSize?: number } = {}): Promise<Paged<Service>> {
+    const r = await http.get('/services', {
+      params: { pageNumber: p.pageNumber ?? 1, pageSize: p.pageSize ?? 12 },
+    });
+    return r.data;
   },
 
-  // ✅ Add service (base64 logo)
-  async add(data: { title: string; description: string; price: number; file: File | null }) {
-    let base64Logo = '';
-    if (data.file) {
-      base64Logo = await toBase64(data.file);
-      base64Logo = base64Logo.split(',')[1] ?? ''; // remove data:image/... prefix
-    }
-
-    const payload = {
-      title: data.title,
-      description: data.description,
-      price: data.price,
-      logo: base64Logo, // 👈 base64 string
-    };
-
-    return http.post('/services', payload).then((r) => r.data);
+  async add(data: { title: string; description: string; price: number; file: File }) {
+    const fd = new FormData();
+    fd.append('Title', data.title);
+    fd.append('Description', data.description);
+    fd.append('Price', String(data.price));
+    fd.append('Logo', data.file);
+    const r = await http.post('/services', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return r.data;
   },
 
-  // ✅ Update service
   async update(id: string, data: { title: string; description: string; price: number; file?: File | null }) {
-    let base64Logo = '';
-    if (data.file) {
-      base64Logo = await toBase64(data.file);
-      base64Logo = base64Logo.split(',')[1] ?? '';
-    }
-
-    const payload = {
-      id,
-      title: data.title,
-      description: data.description,
-      price: data.price,
-      logo: base64Logo, // 👈 base64 string
-    };
-
-    return http.put(`/services/${id}`, payload).then((r) => r.data);
+    const fd = new FormData();
+    fd.append('Id', id);
+    fd.append('Title', data.title);
+    fd.append('Description', data.description);
+    fd.append('Price', String(data.price));
+    if (data.file) fd.append('Logo', data.file);
+    const r = await http.put(`/services/${id}`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return r.data;
   },
 
-  // ✅ Delete service
-  remove(id: string) {
-    return http.delete(`/services/${id}`).then((r) => r.data);
+  async remove(id: string) {
+    const r = await http.delete(`/services/${id}`);
+    return r.data;
   },
 };
-
-// helper — convert file to base64 string
-function toBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}

@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { isAuthenticated, hasAdminRole, username, keycloak } from "../plugins/keycloak";
+
+const { t } = useI18n();
 
 function login() {
   keycloak.login({ redirectUri: window.location.origin });
@@ -11,64 +14,37 @@ function logout() {
 </script>
 
 <template>
-  <header class="navbar">
+  <v-app-bar color="primary" density="comfortable" flat>
+    <v-app-bar-title class="text-h6 font-weight-bold">
+      {{ t('app.title') }}
+    </v-app-bar-title>
 
-    <div class="left">
-      <span class="logo">ImageGallery</span>
-    </div>
-
-    <div class="center">
-      <router-link class="nav-item" to="/">Home</router-link>
-      <router-link class="nav-item" to="/gallery">Gallery</router-link>
-      <router-link class="nav-item" to="/categories">Categories</router-link>
-      <router-link class="nav-item" to="/services">Services</router-link>
-      <router-link class="nav-item" to="/about">About</router-link>
-
-      <!-- Only show Admin if user has Admin role -->
-      <router-link
+    <div class="d-flex align-center ga-1 px-4">
+      <v-btn variant="text" :to="{ name: 'home' }">{{ t('nav.home') }}</v-btn>
+      <v-btn variant="text" :to="{ name: 'categories' }">{{ t('nav.categories') }}</v-btn>
+      <v-btn variant="text" :to="{ name: 'services' }">{{ t('nav.services') }}</v-btn>
+      <v-btn variant="text" :to="{ name: 'about' }">{{ t('nav.about') }}</v-btn>
+      <v-btn
         v-if="isAuthenticated && hasAdminRole"
-        class="nav-item"
-        to="/admin"
+        variant="text"
+        :to="{ name: 'admin.dashboard' }"
       >
-        Admin Panel
-      </router-link>
+        {{ t('nav.admin') }}
+      </v-btn>
     </div>
 
-    <div class="right">
-      <!-- If logged in show welcome -->
-      <span v-if="isAuthenticated" class="welcome">
-        Welcome, {{ username }}
+    <v-spacer />
+
+    <div class="d-flex align-center ga-2 px-4">
+      <span v-if="isAuthenticated" class="text-body-2">
+        {{ t('nav.welcome', { name: username }) }}
       </span>
 
-      <!-- Login / Logout -->
-      <v-btn v-if="!isAuthenticated" @click="login" color="primary" variant="outlined">
-        Login
-      </v-btn>
-
-      <v-btn v-else @click="logout" color="error" variant="outlined">
-        Logout
-      </v-btn>
+      <template v-if="!isAuthenticated">
+        <v-btn variant="outlined" color="white" @click="login">{{ t('nav.login') }}</v-btn>
+        <v-btn variant="flat" color="secondary" :to="{ name: 'register' }">{{ t('nav.register') }}</v-btn>
+      </template>
+      <v-btn v-else variant="outlined" color="white" @click="logout">{{ t('nav.logout') }}</v-btn>
     </div>
-
-  </header>
+  </v-app-bar>
 </template>
-
-<style scoped>
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  padding: 15px 25px;
-  align-items: center;
-}
-
-.nav-item {
-  margin: 0 10px;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.welcome {
-  font-weight: 600;
-  margin-right: 15px;
-}
-</style>

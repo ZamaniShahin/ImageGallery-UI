@@ -1,8 +1,8 @@
 export interface ImageItem {
   id: string;
-  content: string;
-  description?: string;
-  categoryId?: string;
-  createdAt?: string;
+  title: string;
+  description: string;
+  contentType: string;
+  size: number;
+  url: string;
 }
-export type { Paged } from './common';

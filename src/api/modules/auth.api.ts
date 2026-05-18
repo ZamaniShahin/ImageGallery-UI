@@ -1,13 +1,13 @@
 import http from '../http';
 
-
-export interface LoginRequest { email: string; password: string }
-export interface LoginResponse { accessToken: string; refreshToken?: string }
-
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}
 
 export const AuthApi = {
-login(payload: LoginRequest) {
-return http.post<LoginResponse>('/auth/login', payload).then(r => r.data);
-},
-me() { return http.get('/auth/me').then(r => r.data); }
+  register(payload: RegisterRequest) {
+    return http.post<string>('/auth/register', payload).then(r => r.data);
+  },
 };
