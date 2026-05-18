@@ -10,7 +10,13 @@ body,
 
 body {
     margin: 0;
-    font-family: 'Vazirmatn', Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+/* Override Vuetify's default font — it applies its own family on .v-application */
+.v-application,
+.v-application * {
+    font-family: 'Vazirmatn', sans-serif !important;
 }
 
 .container {

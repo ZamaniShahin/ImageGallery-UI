@@ -7,8 +7,14 @@
     </v-row>
 
     <v-row v-else-if="image">
-      <v-col cols="12" md="6" class="d-flex justify-center">
-        <v-img :src="imageSrc" max-width="600" class="rounded elevation-3" />
+      <v-col cols="12" md="6" class="d-flex justify-center align-start">
+        <v-img
+          :src="imageSrc"
+          max-width="600"
+          max-height="520"
+          contain
+          class="rounded elevation-3 detail-image"
+        />
       </v-col>
 
       <v-col cols="12" md="6">
@@ -106,3 +112,10 @@ onMounted(async () => {
   loading.value = false;
 });
 </script>
+
+<style scoped>
+.detail-image {
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+</style>

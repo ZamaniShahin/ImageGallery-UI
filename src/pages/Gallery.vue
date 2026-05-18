@@ -27,11 +27,11 @@
     </v-row>
 
     <v-row v-else>
-      <v-col v-for="img in images" :key="img.id" cols="12" sm="6" md="4">
-        <v-card class="hoverable" @click="router.push({ name: 'image.details', params: { id: img.id } })">
-          <v-img :src="apiOrigin + img.url" height="260" cover />
-          <v-card-title class="text-subtitle-1">{{ img.title }}</v-card-title>
-          <v-card-text>{{ img.description }}</v-card-text>
+      <v-col v-for="img in images" :key="img.id" cols="12" sm="6" md="4" class="d-flex">
+        <v-card class="hoverable gallery-card" @click="router.push({ name: 'image.details', params: { id: img.id } })">
+          <v-img :src="apiOrigin + img.url" height="220" cover />
+          <v-card-title class="text-subtitle-1 text-truncate">{{ img.title }}</v-card-title>
+          <v-card-text class="clamp-text">{{ img.description }}</v-card-text>
         </v-card>
       </v-col>
     </v-row>
@@ -124,3 +124,18 @@ onMounted(() => {
   load();
 });
 </script>
+
+<style scoped>
+.gallery-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.clamp-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>

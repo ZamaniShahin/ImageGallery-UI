@@ -6,8 +6,13 @@ const http = axios.create({
   withCredentials: false,
 });
 
-http.interceptors.request.use((config) => {
-  if (keycloak && keycloak.authenticated) {
+http.interceptors.request.use(async (config) => {
+  if (keycloak?.authenticated) {
+    try {
+      await keycloak.updateToken(30); // refresh if expiring within 30 s
+    } catch {
+      // refresh failed — send with current token; API will return 401 if truly expired
+    }
     config.headers.Authorization = `Bearer ${keycloak.token}`;
   }
   return config;
