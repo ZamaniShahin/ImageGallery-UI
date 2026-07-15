@@ -1,16 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { isAuthenticated, hasAdminRole, username, keycloak } from "../plugins/keycloak";
+import { isAuthenticated, hasAdminRole, username, logout } from "../plugins/keycloak";
 
 const { t } = useI18n();
-
-function login() {
-  keycloak.login({ redirectUri: window.location.origin });
-}
-
-function logout() {
-  keycloak.logout({ redirectUri: window.location.origin });
-}
 </script>
 
 <template>
@@ -41,10 +33,10 @@ function logout() {
       </span>
 
       <template v-if="!isAuthenticated">
-        <v-btn variant="outlined" color="white" @click="login">{{ t('nav.login') }}</v-btn>
+        <v-btn variant="outlined" color="white" :to="{ name: 'login' }">{{ t('nav.login') }}</v-btn>
         <v-btn variant="flat" color="secondary" :to="{ name: 'register' }">{{ t('nav.register') }}</v-btn>
       </template>
-      <v-btn v-else variant="outlined" color="white" @click="logout">{{ t('nav.logout') }}</v-btn>
+      <v-btn v-else variant="outlined" color="white" @click="logout()">{{ t('nav.logout') }}</v-btn>
     </div>
   </v-app-bar>
 </template>

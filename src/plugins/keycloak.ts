@@ -59,3 +59,45 @@ export async function initializeKeycloak() {
 export const username = computed(() =>
   keycloak.tokenParsed?.preferred_username ?? ""
 );
+
+/**
+ * Local logout for the direct-access-grant (password) flow.
+ *
+ * Logins go through our own /login page, which obtains tokens from Keycloak's
+ * token endpoint directly. That creates NO browser SSO session and NO idToken,
+ * so we must NOT redirect through Keycloak's end-session endpoint (that leaves
+ * sessionStorage populated and re-authenticates on the next init). Instead we
+ * clear the local tokens, best-effort revoke the refresh token server-side,
+ * then reload.
+ */
+export async function logout(redirectTo: string = window.location.origin) {
+  const refreshToken = sessionStorage.getItem(REFRESH_TOKEN_KEY);
+
+  clearTokens();
+  isAuthenticated.value = false;
+  try {
+    keycloak.clearToken();
+  } catch {
+    // instance may not be fully initialized — local tokens are already gone
+  }
+
+  if (refreshToken) {
+    try {
+      await fetch(
+        `${import.meta.env.VITE_KEYCLOAK_URL}/realms/${import.meta.env.VITE_KEYCLOAK_REALM}/protocol/openid-connect/logout`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            client_id: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
+            refresh_token: refreshToken,
+          }),
+        },
+      );
+    } catch {
+      // network/CORS failure — local tokens are already cleared, proceed
+    }
+  }
+
+  window.location.href = redirectTo;
+}

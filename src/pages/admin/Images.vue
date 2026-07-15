@@ -75,6 +75,10 @@
       @update:page="onPageChange"
     />
 
+    <v-snackbar v-model="snackbar" color="error" timeout="4000">
+      {{ snackbarText }}
+    </v-snackbar>
+
     <v-dialog v-model="editDialog" max-width="520">
       <v-card>
         <v-card-title class="text-h6 pa-4">{{ t('common.edit') }}</v-card-title>
@@ -114,6 +118,29 @@ const saving = ref(false);
 const page = ref(1);
 const pageSize = ref(10);
 const total = ref(0);
+
+const snackbar = ref(false);
+const snackbarText = ref('');
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB — must match the server limit
+
+function showError(message: string) {
+  snackbarText.value = message;
+  snackbar.value = true;
+}
+
+// Client-side guard mirroring the server validator: reject non-image types
+// and files over the size limit before the upload request is sent.
+function validateImageFile(file: File): boolean {
+  if (!file.type.startsWith('image/')) {
+    showError(t('image.onlyImageAllowed'));
+    return false;
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    showError(t('image.fileTooLarge'));
+    return false;
+  }
+  return true;
+}
 
 const form = ref<{ title: string; description: string; file: File | null }>({
   title: '',
@@ -167,6 +194,7 @@ function onPageChange(p: number) {
 
 async function uploadImage() {
   if (!selectedCategory.value || !form.value.file) return;
+  if (!validateImageFile(form.value.file)) return;
   uploading.value = true;
   try {
     await ImagesApi.create(selectedCategory.value, form.value.file, form.value.title, form.value.description);
@@ -190,6 +218,7 @@ function openEdit(item: ImageItem) {
 }
 
 async function saveEdit() {
+  if (editForm.value.file && !validateImageFile(editForm.value.file)) return;
   saving.value = true;
   try {
     await ImagesApi.update(editForm.value.id, editForm.value.title, editForm.value.description, editForm.value.file);

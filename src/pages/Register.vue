@@ -21,6 +21,22 @@
           :rules="emailRules"
         />
         <v-text-field
+          v-model="form.firstName"
+          :label="t('auth.firstName')"
+          prepend-inner-icon="mdi-account-outline"
+          autocomplete="given-name"
+          required
+          :rules="nameRules"
+        />
+        <v-text-field
+          v-model="form.lastName"
+          :label="t('auth.lastName')"
+          prepend-inner-icon="mdi-account-outline"
+          autocomplete="family-name"
+          required
+          :rules="nameRules"
+        />
+        <v-text-field
           v-model="form.password"
           :label="t('auth.password')"
           :hint="t('auth.passwordHint')"
@@ -66,11 +82,12 @@
 
 <script setup lang="ts">
 import { reactive, ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { AuthApi } from '../api/modules/auth.api';
-import { keycloak } from '../plugins/keycloak';
 
 const { t } = useI18n();
+const router = useRouter();
 const formRef = ref();
 const loading = ref(false);
 const error = ref('');
@@ -79,6 +96,8 @@ const success = ref(false);
 const form = reactive({
   username: '',
   email: '',
+  firstName: '',
+  lastName: '',
   password: '',
   confirmPassword: '',
 });
@@ -92,6 +111,10 @@ const usernameRules = computed(() => [
 const emailRules = computed(() => [
   (v: string) => !!v || t('errors.generic'),
   (v: string) => /\S+@\S+\.\S+/.test(v) || t('auth.email'),
+]);
+
+const nameRules = computed(() => [
+  (v: string) => !!v?.trim() || t('errors.generic'),
 ]);
 
 const passwordRules = computed(() => [
@@ -116,11 +139,13 @@ async function submit() {
     await AuthApi.register({
       username: form.username,
       email: form.email,
+      firstName: form.firstName,
+      lastName: form.lastName,
       password: form.password,
     });
     success.value = true;
     setTimeout(() => {
-      keycloak.login({ loginHint: form.email, redirectUri: window.location.origin });
+      router.push({ name: 'login', query: { username: form.username } });
     }, 1500);
   } catch (e: any) {
     const apiMsg = e?.response?.data?.errors?.[0] || e?.response?.data || e?.message;
@@ -131,6 +156,6 @@ async function submit() {
 }
 
 function login() {
-  keycloak.login({ redirectUri: window.location.origin });
+  router.push({ name: 'login' });
 }
 </script>

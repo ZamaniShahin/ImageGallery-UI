@@ -6,9 +6,7 @@ const AdminLayout = () => import("../layouts/AdminLayout.vue");
 
 function requireAuth(to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) {
   if (!keycloak.authenticated) {
-    return keycloak.login({
-      redirectUri: window.location.origin + to.fullPath,
-    });
+    return next({ name: 'login', query: { redirect: to.fullPath } });
   }
 
   const isAdmin = keycloak.hasResourceRole("Admin", "imagegallery-frontend");
@@ -30,6 +28,7 @@ const routes = [
       { path: "categories", name: "categories", meta: { breadcrumb: "breadcrumbs.categories" }, component: () => import("../pages/Categories.vue") },
       { path: "services", name: "services", meta: { breadcrumb: "breadcrumbs.services" }, component: () => import("../pages/Services.vue") },
       { path: "about", name: "about", meta: { breadcrumb: "breadcrumbs.about" }, component: () => import("../pages/About.vue") },
+      { path: "login", name: "login", meta: { breadcrumb: "breadcrumbs.login" }, component: () => import("../pages/Login.vue") },
       { path: "register", name: "register", meta: { breadcrumb: "breadcrumbs.register" }, component: () => import("../pages/Register.vue") },
       { path: "image/:id", name: "image.details", meta: { breadcrumb: "breadcrumbs.imageDetails" }, component: () => import("../pages/ImageDetails.vue") },
     ],
